@@ -55,20 +55,24 @@ uint8_t getPixelValue(Image* srcImage,int x,int y,int bit,Matrix algorithm){
 typedef struct {
     Image* srcimage;
     Image* destimage;
-    int row;
+    int rank;
+    int thread_count;
     Matrix algorithm
 } convolutedata_t;
 
 void* convoluteInner(void* data) {
-    int pix, bit, span;
+    int row, pix, bit, span;
     convolutedata_t* imagedata = (convolutedata_t*) data;
-    int row = imagedata->row;
+    int rank = imagedata->rank;
+    int thread_count = imagedata->thread_count;
     Image* srcimage = imagedata->srcimage;
     Image* destimage = imagedata->destimage;
     Matrix algorithm;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            algorithm[i][j] = imagedata->algorithm[i][j];
+    for (row = rank; row < srcimage->height; row += thread_count){
+        for (pix = 0; pix < srcimage->width; pix++){
+            for (bit = 0; bit < srcimage->bpp; bit++){
+                destimage->data[Index(pix,row,srcimage->width,bit,srcimage->bpp)]=getPixelValue(srcimage,pix,row,bit,algorithm);
+            }
         }
     }
     for (pix = 0; pix < srcimage->width; pix++){
@@ -86,12 +90,14 @@ void* convoluteInner(void* data) {
 void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
     int row, pix, bit, span;
     span = srcImage->bpp * srcImage->bpp;
-    pthread_t* threads = calloc(srcImage->height, sizeof(pthread_t));
-    for (row = 0; row < srcImage->height; row++){
+    const int thread_count = 4;
+    pthread_t* threads = calloc(thread_count, sizeof(pthread_t));
+    for (int rank = 0; row < thread_count; rank++){
         convolutedata_t data;
         data.srcimage = srcImage;
         data.destimage = destImage;
-        data.row = row;
+        data.rank = rank;
+        data.thread_count = thread_count;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 data.algorithm[i][j] = algorithm[i][j];
@@ -99,7 +105,7 @@ void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
         }
         pthread_create(&(threads[row]), NULL, &convoluteInner, (void*) &data);
     }
-    for (row = 0; row < srcImage->height; row++){
+    for (row = 0; row < thread_count; row++){
         pthread_join(threads[row], NULL);
     }
     free(threads);
