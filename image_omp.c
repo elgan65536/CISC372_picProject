@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <string.h>
+#include <omp.h>
 #include "image.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -59,9 +60,11 @@ uint8_t getPixelValue(Image* srcImage,int x,int y,int bit,Matrix algorithm){
 void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
     int row,pix,bit,span;
     span=srcImage->bpp*srcImage->bpp;
-    for (row=0;row<srcImage->height;row++){
-        for (pix=0;pix<srcImage->width;pix++){
-            for (bit=0;bit<srcImage->bpp;bit++){
+    int rank = omp_get_thread_num();
+    int thread_count = omp_get_num_threads();
+    for (row = rank; row < srcImage->height; row += thread_count){
+        for (pix = 0; pix < srcImage->width; pix++){
+            for (bit = 0; bit < srcImage->bpp; bit++){
                 destImage->data[Index(pix,row,srcImage->width,bit,srcImage->bpp)]=getPixelValue(srcImage,pix,row,bit,algorithm);
             }
         }
@@ -111,10 +114,11 @@ int main(int argc,char** argv){
     destImage.height=srcImage.height;
     destImage.width=srcImage.width;
     destImage.data=malloc(sizeof(uint8_t)*destImage.width*destImage.bpp*destImage.height);
+    #pragma omp parallel num_threads(4)
     convolute(&srcImage,&destImage,algorithms[type]);
     stbi_write_png("output.png",destImage.width,destImage.height,destImage.bpp,destImage.data,destImage.bpp*destImage.width);
     stbi_image_free(srcImage.data);
-    
+
     free(destImage.data);
     t2=time(NULL);
     printf("Took %ld seconds\n",t2-t1);
