@@ -68,16 +68,16 @@ void* convoluteInner(void* data) {
     Image* srcimage = imagedata->srcimage;
     Image* destimage = imagedata->destimage;
     Matrix algorithm;
-    for (row = rank; row < srcimage->height; row += thread_count){
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            algorithm[i][j] = imagedata->algorithm[i][j];
+        }
+    }
+    for (row = rank; row < srcimage->height; row += thread_count){ //loop splitting
         for (pix = 0; pix < srcimage->width; pix++){
             for (bit = 0; bit < srcimage->bpp; bit++){
                 destimage->data[Index(pix,row,srcimage->width,bit,srcimage->bpp)]=getPixelValue(srcimage,pix,row,bit,algorithm);
             }
-        }
-    }
-    for (pix = 0; pix < srcimage->width; pix++){
-        for (bit = 0; bit < srcimage->bpp; bit++){
-            destimage->data[Index(pix,row,srcimage->width,bit,srcimage->bpp)]=getPixelValue(srcimage,pix,row,bit,algorithm);
         }
     }
 }
