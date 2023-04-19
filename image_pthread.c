@@ -80,6 +80,7 @@ void* convoluteInner(void* data) {
             }
         }
     }
+    free(imagedata);
 }
 
 //convolute:  Applies a kernel matrix to an image
@@ -92,18 +93,18 @@ void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
     span = srcImage->bpp * srcImage->bpp;
     const int thread_count = 4;
     pthread_t* threads = calloc(thread_count, sizeof(pthread_t));
-    for (int rank = 0; row < thread_count; rank++){
-        convolutedata_t data;
-        data.srcimage = srcImage;
-        data.destimage = destImage;
-        data.rank = rank;
-        data.thread_count = thread_count;
+    for (int rank = 0; rank < thread_count; rank++){
+        convolutedata_t* data = malloc(sizeof(convolutedata_t));
+        data->srcimage = srcImage;
+        data->destimage = destImage;
+        data->rank = rank;
+        data->thread_count = thread_count;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                data.algorithm[i][j] = algorithm[i][j];
+                data->algorithm[i][j] = algorithm[i][j];
             }
         }
-        pthread_create(&(threads[row]), NULL, &convoluteInner, (void*) &data);
+        pthread_create(&(threads[row]), NULL, &convoluteInner, (void*) data);
     }
     for (row = 0; row < thread_count; row++){
         pthread_join(threads[row], NULL);
