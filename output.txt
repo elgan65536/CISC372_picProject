@@ -1,0 +1,9 @@
+Script started on Wed Apr 19 21:15:34 2023
+]0;cnagle@r1n00.darwin:~/CISC372_picProject[?1034h[cnagle@r1n00 CISC372_picProject]$ srun ./image_pthread pig1.jpg edge[1P[1@c1.jpg edge
+Took 6 seconds
+]0;cnagle@r1n00.darwin:~/CISC372_picProject[cnagle@r1n00 CISC372_picProject]$ srun ./image_pthread pic1.jpg edge[1P[1P[1P[1P[1P[1P[1P[1@o[1@m[1@p
+Took 6 seconds
+]0;cnagle@r1n00.darwin:~/CISC372_picProject[cnagle@r1n00 CISC372_picProject]$ exi   exit
+exit
+
+Script done on Wed Apr 19 21:16:26 2023
