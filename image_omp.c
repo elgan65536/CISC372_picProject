@@ -62,9 +62,9 @@ void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
     span=srcImage->bpp*srcImage->bpp;
     int rank = omp_get_thread_num();
     int thread_count = omp_get_num_threads();
-    for (row = rank; row < srcImage->height; row += thread_count){
-        for (pix = 0; pix < srcImage->width; pix++){
-            for (bit = 0; bit < srcImage->bpp; bit++){
+    for (int row = rank; row < srcImage->height; row += thread_count){
+        for (int pix = 0; pix < srcImage->width; pix++){
+            for (int bit = 0; bit < srcImage->bpp; bit++){
                 destImage->data[Index(pix,row,srcImage->width,bit,srcImage->bpp)]=getPixelValue(srcImage,pix,row,bit,algorithm);
             }
         }

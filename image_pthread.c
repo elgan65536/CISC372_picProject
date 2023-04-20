@@ -73,9 +73,9 @@ void* convoluteInner(void* data) {
             algorithm[i][j] = imagedata->algorithm[i][j];
         }
     }
-    for (row = rank; row < srcimage->height; row += thread_count){ //loop splitting
-        for (pix = 0; pix < srcimage->width; pix++){
-            for (bit = 0; bit < srcimage->bpp; bit++){
+    for (int row = rank; row < srcimage->height; row += thread_count){ //loop splitting
+        for (int pix = 0; pix < srcimage->width; pix++){
+            for (int bit = 0; bit < srcimage->bpp; bit++){
                 destimage->data[Index(pix,row,srcimage->width,bit,srcimage->bpp)]=getPixelValue(srcimage,pix,row,bit,algorithm);
             }
         }
@@ -104,9 +104,9 @@ void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
                 data->algorithm[i][j] = algorithm[i][j];
             }
         }
-        pthread_create(&(threads[row]), NULL, &convoluteInner, (void*) data);
+        pthread_create(&(threads[rank]), NULL, &convoluteInner, (void*) data);
     }
-    for (row = 0; row < thread_count; row++){
+    for (int row = 0; row < thread_count; row++){
         pthread_join(threads[row], NULL);
     }
     free(threads);
